@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# from http://www.pyimagesearch.com/2014/08/04/opencv-python-color-detection/
+# using code from http://www.pyimagesearch.com/2014/08/04/opencv-python-color-detection/
 # import packages
 import numpy as np
 import argparse
@@ -26,11 +26,12 @@ ideal = np.zeros([1000, 1000], np.uint8)
 for cnt in octagon:
     _octagon = [cnt]
 
-# approximate the contour
-# _octagon is the contour against which to compare
+# approximate the contour so it has the same format as the test contour
+# oct is the contour against which to compare
 cv2.drawContours(ideal,octagon,-1,(255,255,255),2)
-cv2.imshow("image", ideal)
-cv2.waitKey(0)
+# just need to make it, don't need to show it
+#cv2.imshow("image", ideal)
+#cv2.waitKey(0)
 
 # get contour points
 im2, octagonContour, hierarchy = cv2.findContours(ideal.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -39,9 +40,11 @@ octagonContour= sorted(octagonContour, key = cv2.contourArea, reverse = True)[:1
 #print contours
 # pick the biggest (by area) contour
 oct = octagonContour[0]
-print oct
-cv2.waitKey(0)
+# dont print or wait
+#print oct
+#cv2.waitKey(0)
 
+# select input image
 # contruct the argument parse and parse the arguments!
 ap = argparse.ArgumentParser()
 ap.add_argument("-i", "--image", help = "path to the image")
@@ -66,6 +69,7 @@ for (lower, upper) in boundaries:
 #    print upper
     
     # find the colors within the specified boundaries and apply the mask
+    # make gray scale version of found color and threshold to B&W
     mask = cv2.inRange(image, lower, upper)
     output = cv2.bitwise_and(image, image, mask = mask)
     gray = cv2.cvtColor(output, cv2.COLOR_BGR2GRAY)
@@ -73,20 +77,21 @@ for (lower, upper) in boundaries:
 z,bw = cv2.threshold(gray, 1, 255, cv2.THRESH_BINARY)
 #print z
 #cv2.namedWindow("image", cv2.WINDOW_NORMAL)
-cv2.imshow("image", bw)
-cv2.waitKey(0)
+#cv2.imshow("image", bw)
+#cv2.waitKey(0)
 
 # some morphological operations
 kernel = np.ones((3,3), np.uint8)
 bwMorph = bw
-#bwMorph = cv2.erode(bwMorph, kernel, iterations = 1)
+# could replace with a close operation
 bwMorph = cv2.dilate(bwMorph, kernel, iterations = 1)
 bwMorph = cv2.erode(bwMorph, kernel, iterations = 1)
 edges = cv2.Canny(bwMorph, 50, 200)
-cv2.imshow("image", edges)
-cv2.waitKey(0)
+# dont show edges
+#cv2.imshow("image", edges)
+#cv2.waitKey(0)
 
-# get contour points
+# get contour points from edge map
 im2, contours, hierarchy = cv2.findContours(edges.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 contours = sorted(contours, key = cv2.contourArea, reverse = True)[:10]
 #for i in contours:
@@ -95,18 +100,22 @@ contours = sorted(contours, key = cv2.contourArea, reverse = True)[:10]
 cnt = contours[0]
 #M = cv2.moments(cnt)
 #print M
-# approximate the contour
+# approximate the contour. gets rid of jagged edges. adjust epsilon as needed
 epsilon = 0.02*cv2.arcLength(cnt, True)
 approx = cv2.approxPolyDP(cnt, epsilon, True)
-print approx
-cv2.drawContours(image, approx, -1, (0,255,0), 3)
-cv2.imshow("image", image)
-cv2.waitKey(0)
+# dont print or show
+#print approx
+#cv2.drawContours(image, approx, -1, (0,255,0), 3)
+#cv2.imshow("image", image)
+#cv2.waitKey(0)
 
 # match shape to ideal octagon
 match = cv2.matchShapes(oct, approx, 1, 0)
+# collect several match quantities - [0,1]; 0 is closer match, 1 is not match
+# need to develop threshold for correct match
 print match
 
+# maybe try for speed
 # get convex hull
 
 
@@ -114,4 +123,4 @@ print match
 # show results
 
 #cv2.drawContours(bw, approx, 0, (0,255,0), 3)
-cv2.waitKey(0)
+#cv2.waitKey(0)
