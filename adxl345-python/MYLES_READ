@@ -1,0 +1,4 @@
+# For bus errors:
+#  queries all addresses
+#  Device should show up as 0x53
+i2cdetect -y 1
